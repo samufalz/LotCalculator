@@ -148,7 +148,7 @@ input[type="number"]:focus { border-color: var(--accent); }
 .r-max { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500; color: var(--text2); }
 
 /* Targets */
-.section-divider { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); padding: 10px 0 6px; border-top: 1px solid var(--border); margin-top: 2px; }
+.section-divider { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); padding: 10px 0 6px; border-top: 1px solid var(--border); margin-top: 2px; }
 .section-divider.first { border-top: none; padding-top: 0; }
 .target-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .target-row:last-child { border-bottom: none; padding-bottom: 0; }
@@ -274,25 +274,25 @@ footer { margin-top: 2rem; font-family: 'IBM Plex Mono', monospace; font-size: 1
     </div>
     <div class="target-row">
       <div><div class="t-name">Auto BE <span class="t-ratio">1:5</span></div><div class="t-desc">Punto breakeven automatico</div></div>
-      <div class="t-right"><span class="t-pips" id="t-5be">125</span><span class="t-unit">pips</span></div>
+      <div class="t-right"><div style="text-align:right"><span class="t-pips" id="t-5be">125</span><span class="t-unit">pips</span><div class="t-desc" id="t-5be-usd" style="margin-top:2px"></div></div></div>
     </div>
     <div class="section-divider">Contro daily</div>
     <div class="target-row">
       <div><div class="t-name">M1 da <span class="t-ratio">1:5</span></div><div class="t-desc">Gestione M1 contro trend daily</div></div>
-      <div class="t-right"><span class="t-pips" id="t-5cd">125</span><span class="t-unit">pips</span></div>
+      <div class="t-right"><div style="text-align:right"><span class="t-pips" id="t-5cd">125</span><span class="t-unit">pips</span><div class="t-desc" id="t-5cd-usd" style="margin-top:2px"></div></div></div>
     </div>
     <div class="target-row">
       <div><div class="t-name">TP <span class="t-ratio">1:10</span></div><div class="t-desc">Take profit contro trend daily</div></div>
-      <div class="t-right"><span class="t-pips" id="t-10cd">250</span><span class="t-unit">pips</span></div>
+      <div class="t-right"><div style="text-align:right"><span class="t-pips" id="t-10cd">250</span><span class="t-unit">pips</span><div class="t-desc" id="t-10cd-usd" style="margin-top:2px"></div></div></div>
     </div>
     <div class="section-divider">Favore daily</div>
     <div class="target-row">
       <div><div class="t-name">M1 da <span class="t-ratio">1:10</span></div><div class="t-desc">Gestione M1 a favore trend daily</div></div>
-      <div class="t-right"><span class="t-pips" id="t-10fd">250</span><span class="t-unit">pips</span></div>
+      <div class="t-right"><div style="text-align:right"><span class="t-pips" id="t-10fd">250</span><span class="t-unit">pips</span><div class="t-desc" id="t-10fd-usd" style="margin-top:2px"></div></div></div>
     </div>
     <div class="target-row">
       <div><div class="t-name">TP <span class="t-ratio">1:20</span></div><div class="t-desc">Take profit a favore trend daily</div></div>
-      <div class="t-right"><span class="t-pips" id="t-20fd">500</span><span class="t-unit">pips</span></div>
+      <div class="t-right"><div style="text-align:right"><span class="t-pips" id="t-20fd">500</span><span class="t-unit">pips</span><div class="t-desc" id="t-20fd-usd" style="margin-top:2px"></div></div></div>
     </div>
   </div>
 
@@ -427,6 +427,13 @@ function calc() {
   document.getElementById('t-10cd').textContent      = Math.round(pips * 10);
   document.getElementById('t-10fd').textContent      = Math.round(pips * 10);
   document.getElementById('t-20fd').textContent      = Math.round(pips * 20);
+
+  const usd = (mult) => lot > 0 ? '≈ $' + fmt(Math.round(pips * mult) * lot * pipVal) : '';
+  document.getElementById('t-5be-usd').textContent  = usd(5);
+  document.getElementById('t-5cd-usd').textContent  = usd(5);
+  document.getElementById('t-10cd-usd').textContent = usd(10);
+  document.getElementById('t-10fd-usd').textContent = usd(10);
+  document.getElementById('t-20fd-usd').textContent = usd(20);
 }
 
 /* ── Events ── */
