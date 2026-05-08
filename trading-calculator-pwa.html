@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lot Calc">
+<meta name="theme-color" content="#0e0f11">
+<title>Lot Size Calculator</title>
+
+<!-- PWA Manifest inline -->
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Lot+Size+Calculator%22%2C%22short_name%22%3A%22Lot+Calc%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230e0f11%22%2C%22theme_color%22%3A%22%230e0f11%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg+xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'+viewBox%3D'0+0+512+512'%253E%253Crect+width%3D'512'+height%3D'512'+rx%3D'100'+fill%3D'%230e0f11'%2F%253E%253Ctext+x%3D'256'+y%3D'340'+font-size%3D'260'+font-family%3D'monospace'+text-anchor%3D'middle'+fill%3D'%23e07b3a'%253EL%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+
+<!-- Apple touch icon inline SVG -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230e0f11'/><text x='256' y='340' font-size='260' font-family='monospace' text-anchor='middle' fill='%23e07b3a'>L</text></svg>">
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:     #0e0f11;
+    --bg2:    #161719;
+    --bg3:    #1e2022;
+    --border: rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.12);
+    --text:   #e8e9eb;
+    --text2:  #8a8f98;
+    --text3:  #50545c;
+    --accent: #e07b3a;
+    --green:  #3ecf8e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: env(safe-area-inset-top, 0) 0 calc(env(safe-area-inset-bottom, 0) + 2rem);
+  }
+
+  /* Status bar spacer for notch phones */
+  .status-bar {
+    width: 100%;
+    height: max(env(safe-area-inset-top, 0px), 0px);
+    background: var(--bg);
+  }
+
+  /* Header */
+  header {
+    width: 100%;
+    max-width: 560px;
+    padding: 1rem 1.25rem 0.75rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+  .logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .version {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  .app {
+    width: 100%;
+    max-width: 560px;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+  }
+  .card-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+
+  /* Input fields */
+  .field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .field:last-child { border-bottom: none; padding-bottom: 0; }
+  .field:first-of-type { padding-top: 0; }
+
+  .field-label {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.3;
+    flex: 1;
+  }
+  .field-label small {
+    display: block;
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 1px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .field-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  input[type="number"] {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    height: 38px;
+    padding: 0 10px;
+    text-align: right;
+    width: 105px;
+    outline: none;
+    -moz-appearance: textfield;
+    transition: border-color 0.15s;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type="number"]:focus { border-color: var(--accent); }
+
+  .unit {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    min-width: 26px;
+  }
+
+  /* Lot size */
+  .lot-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .lot-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 12px 0 0 12px;
+  }
+  .lot-meta .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 3px;
+  }
+  .lot-meta .sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 3px;
+  }
+  .lot-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 52px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .lot-number span {
+    font-size: 16px;
+    color: var(--text3);
+    font-weight: 400;
+    margin-left: 4px;
+  }
+
+  /* Metrics grid */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .metric-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+  }
+  .m-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+  .m-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .m-unit { font-size: 12px; font-weight: 400; color: var(--text3); margin-left: 2px; }
+  .m-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+  .risk-range { display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
+  .r-min { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600; color: var(--text); }
+  .r-arrow { font-size: 11px; color: var(--text3); }
+  .r-max { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500; color: var(--text2); }
+
+  /* Targets */
+  .section-divider {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 10px 0 6px;
+    border-top: 1px solid var(--border);
+    margin-top: 2px;
+  }
+  .section-divider.first { border-top: none; padding-top: 0; }
+
+  .target-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .target-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .t-name { font-size: 13px; color: var(--text2); }
+  .t-ratio {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    background: var(--bg3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+  .t-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .t-right { display: flex; align-items: baseline; gap: 4px; flex-shrink: 0; }
+  .t-pips { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--text); }
+  .t-unit { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text3); }
+
+  /* Install banner */
+  #install-banner {
+    display: none;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 1rem 10px;
+  }
+  .install-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    height: 46px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .install-btn svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  footer {
+    margin-top: 2rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    text-align: center;
+    padding: 0 1rem;
+  }
+  footer span { color: var(--text3); opacity: 0.5; }
+</style>
+</head>
+<body>
+
+<div class="status-bar"></div>
+
+<header>
+  <div class="logo">Lot Size Calc</div>
+  <div class="version">v1.0</div>
+</header>
+
+<div class="app">
+
+  <!-- INSTALL BANNER (Android Chrome) -->
+  <div id="install-banner">
+    <button class="install-btn" id="install-btn">
+      <svg viewBox="0 0 24 24"><path d="M12 2v13m0 0l-4-4m4 4l4-4M2 17v2a2 2 0 002 2h16a2 2 0 002-2v-2"/></svg>
+      Installa sull'home screen
+    </button>
+  </div>
+
+  <!-- PARAMETRI -->
+  <div class="card">
+    <div class="card-title">Parametri</div>
+
+    <div class="field">
+      <div class="field-label">Size conto</div>
+      <div class="field-right">
+        <input type="number" id="balance" value="100000" min="1" step="1000" inputmode="numeric">
+        <span class="unit">$</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        Pips stop
+        <small id="risk-label">rischio 0.30%</small>
+      </div>
+      <div class="field-right">
+        <input type="number" id="pips" value="25" min="1" step="1" inputmode="numeric">
+        <span class="unit">pips</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Rischio %</div>
+      <div class="field-right">
+        <input type="number" id="risk" value="0.3" min="0.01" max="10" step="0.05" inputmode="decimal">
+        <span class="unit">%</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        Valore pip
+        <small>std lot, major pairs</small>
+      </div>
+      <div class="field-right">
+        <input type="number" id="pipval" value="10" min="0.1" step="0.5" inputmode="decimal">
+        <span class="unit">$/pip</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOT SIZE -->
+  <div class="lot-card">
+    <div class="lot-meta">
+      <div class="label">Lot Size</div>
+      <div class="sub">rischio min · stop utente</div>
+    </div>
+    <div class="lot-number" id="lot-display">1.20<span>lot</span></div>
+  </div>
+
+  <!-- RISK + SL -->
+  <div class="metrics-row">
+    <div class="metric-card">
+      <div class="m-label">Risk per trade</div>
+      <div class="risk-range">
+        <span class="r-min" id="risk-min">$300</span>
+        <span class="r-arrow">→</span>
+        <span class="r-max" id="risk-max">$420</span>
+      </div>
+      <div class="m-sub">min → max (SL massimo)</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">SL massimo</div>
+      <div class="m-val">
+        <span id="sl-max-val">35</span><span class="m-unit">pips</span>
+      </div>
+      <div class="m-sub">stop × 1.4</div>
+    </div>
+  </div>
+
+  <!-- TARGET LEVELS -->
+  <div class="card">
+    <div class="card-title">Livelli strategia</div>
+
+    <div class="section-divider first">Generali</div>
+    <div class="target-row">
+      <div>
+        <div class="t-name">Min range <span class="t-ratio">1:4</span></div>
+        <div class="t-desc">Range minimo di operatività</div>
+      </div>
+      <div class="t-right"><span class="t-pips" id="t-4">100</span><span class="t-unit">pips</span></div>
+    </div>
+    <div class="target-row">
+      <div>
+        <div class="t-name">Auto BE <span class="t-ratio">1:5</span></div>
+        <div class="t-desc">Punto breakeven automatico</div>
+      </div>
+      <div class="t-right"><span class="t-pips" id="t-5be">125</span><span class="t-unit">pips</span></div>
+    </div>
+
+    <div class="section-divider">Contro daily</div>
+    <div class="target-row">
+      <div>
+        <div class="t-name">M1 da <span class="t-ratio">1:5</span></div>
+        <div class="t-desc">Gestione M1 contro trend daily</div>
+      </div>
+      <div class="t-right"><span class="t-pips" id="t-5cd">125</span><span class="t-unit">pips</span></div>
+    </div>
+    <div class="target-row">
+      <div>
+        <div class="t-name">TP <span class="t-ratio">1:10</span></div>
+        <div class="t-desc">Take profit contro trend daily</div>
+      </div>
+      <div class="t-right"><span class="t-pips" id="t-10cd">250</span><span class="t-unit">pips</span></div>
+    </div>
+
+    <div class="section-divider">Favore daily</div>
+    <div class="target-row">
+      <div>
+        <div class="t-name">M1 da <span class="t-ratio">1:10</span></div>
+        <div class="t-desc">Gestione M1 a favore trend daily</div>
+      </div>
+      <div class="t-right"><span class="t-pips" id="t-10fd">250</span><span class="t-unit">pips</span></div>
+    </div>
+    <div class="target-row">
+      <div>
+        <div class="t-name">TP <span class="t-ratio">1:20</span></div>
+        <div class="t-desc">Take profit a favore trend daily</div>
+      </div>
+      <div class="t-right"><span class="t-pips" id="t-20fd">500</span><span class="t-unit">pips</span></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Lot Size Calculator · uso personale<br><span>funziona offline</span></footer>
+
+<script>
+  /* ── Calcoli ── */
+  function fmt(n){ return n.toLocaleString('it-IT',{maximumFractionDigits:0}); }
+
+  function calc(){
+    const bal    = parseFloat(document.getElementById('balance').value)||0;
+    const pips   = parseFloat(document.getElementById('pips').value)||0;
+    const riskPct= parseFloat(document.getElementById('risk').value)||0;
+    const pipVal = parseFloat(document.getElementById('pipval').value)||10;
+
+    const rMin = bal*(riskPct/100);
+    const rMax = rMin*1.4;
+    const slMax= pips*1.4;
+    const lot  = (pips>0&&pipVal>0) ? rMin/(pips*pipVal) : 0;
+
+    document.getElementById('lot-display').innerHTML = lot.toFixed(2)+'<span>lot</span>';
+    document.getElementById('risk-min').textContent = '$'+fmt(rMin);
+    document.getElementById('risk-max').textContent = '$'+fmt(rMax);
+    document.getElementById('sl-max-val').textContent = slMax%1===0 ? slMax : slMax.toFixed(1);
+    document.getElementById('risk-label').textContent = 'rischio '+riskPct.toFixed(2)+'%';
+
+    document.getElementById('t-4').textContent    = Math.round(pips*4);
+    document.getElementById('t-5be').textContent  = Math.round(pips*5);
+    document.getElementById('t-5cd').textContent  = Math.round(pips*5);
+    document.getElementById('t-10cd').textContent = Math.round(pips*10);
+    document.getElementById('t-10fd').textContent = Math.round(pips*10);
+    document.getElementById('t-20fd').textContent = Math.round(pips*20);
+  }
+
+  ['balance','pips','risk','pipval'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', calc);
+  });
+  calc();
+
+  /* ── Service Worker (cache offline) ── */
+  if('serviceWorker' in navigator){
+    const swCode = `
+      const CACHE = 'lotcalc-v1';
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './trading-calculator-pwa.html'])));
+        self.skipWaiting();
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+      });
+    `;
+    const blob = new Blob([swCode], {type:'application/javascript'});
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).catch(()=>{});
+  }
+
+  /* ── Install prompt (Android Chrome) ── */
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('install-banner').style.display = 'block';
+  });
+  document.getElementById('install-btn').addEventListener('click', async () => {
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if(outcome === 'accepted') document.getElementById('install-banner').style.display = 'none';
+    deferredPrompt = null;
+  });
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('install-banner').style.display = 'none';
+  });
+</script>
+</body>
+</html>
